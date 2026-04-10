@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Abil Sebastian — Robotics Project</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080c10;
+      --surface: #0f1520;
+      --surface2: #151d2e;
+      --border: rgba(255,255,255,0.07);
+      --accent: #00e5ff;
+      --accent2: #ff6b35;
+      --text: #e8edf5;
+      --muted: #5a6880;
+      --mono: 'Space Mono', monospace;
+      --sans: 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden;
+    }
+
+    /* Grid noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.015) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      background: rgba(8,12,16,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--accent); }
+
+    .status-badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent2);
+      border: 1px solid var(--accent2);
+      padding: 0.25rem 0.7rem;
+      border-radius: 2px;
+      letter-spacing: 0.1em;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 2.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    .hero-name {
+      font-family: var(--mono);
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+
+    .hero-name span { color: var(--accent); }
+
+    .hero-course {
+      font-family: var(--mono);
+      font-size: clamp(0.8rem, 2vw, 1.1rem);
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      font-weight: 300;
+      line-height: 1.8;
+      color: rgba(232,237,245,0.7);
+      max-width: 560px;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 1s forwards;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .btn-primary:hover { background: #fff; }
+
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero-scan {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.1);
+      opacity: 0;
+      animation: fadeIn 1.5s 1.2s forwards;
+    }
+
+    .hero-scan::before {
+      content: '';
+      position: absolute;
+      inset: 30px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.06);
+    }
+
+    .hero-scan::after {
+      content: '';
+      position: absolute;
+      inset: 70px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,229,255,0.04);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2.5rem;
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: var(--mono);
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 3rem;
+      line-height: 1.1;
+    }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 0 2.5rem;
+      max-width: calc(1100px - 5rem);
+    }
+
+    /* ── PROJECT CARD ── */
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .project-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .project-card:hover {
+      border-color: rgba(0,229,255,0.3);
+      transform: translateY(-3px);
+    }
+
+    .project-card.featured {
+      grid-column: span 2;
+      border-color: rgba(0,229,255,0.2);
+      background: linear-gradient(135deg, var(--surface), var(--surface2));
+    }
+
+    .card-tag {
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+      display: inline-block;
+      border: 1px solid rgba(0,229,255,0.3);
+      padding: 0.2rem 0.6rem;
+      border-radius: 2px;
+    }
+
+    .card-title {
+      font-family: var(--mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-body {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: rgba(232,237,245,0.65);
+    }
+
+    .unique-tag {
+      margin-top: 1.25rem;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent2);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── TEAM ── */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .team-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.75rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .team-card:hover { border-color: rgba(0,229,255,0.3); }
+
+    .team-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .team-card:hover::before { opacity: 1; }
+
+    .team-role {
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .team-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .team-detail {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── TIMELINE ── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 200px 1px 1fr;
+      gap: 0 2rem;
+      padding-bottom: 2.5rem;
+    }
+
+    .t-date {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: right;
+      padding-top: 0.15rem;
+    }
+
+    .t-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .t-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--muted);
+      flex-shrink: 0;
+      margin-top: 0.15rem;
+    }
+
+    .t-dot.done { background: var(--accent); border-color: var(--accent); }
+    .t-dot.overdue { background: var(--accent2); border-color: var(--accent2); }
+    .t-dot.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+
+    .t-connector {
+      flex: 1;
+      width: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    .t-content { padding-bottom: 0.5rem; }
+
+    .t-title {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .t-body {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .t-status {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      margin-top: 0.5rem;
+    }
+
+    .status-overdue { background: rgba(255,107,53,0.15); color: var(--accent2); }
+    .status-active { background: rgba(0,229,255,0.12); color: var(--accent); }
+    .status-upcoming { background: rgba(255,255,255,0.05); color: var(--muted); }
+
+    /* ── WOKWI TASKS ── */
+    .tasks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1rem;
+    }
+
+    .task-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .task-box.empty { border-style: dashed; }
+
+    .task-box:hover { border-color: rgba(0,229,255,0.4); }
+
+    .task-number {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .task-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .task-box.done .task-number { color: var(--accent); }
+    .task-box.done { border-color: rgba(0,229,255,0.2); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-id {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .footer-id span { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.2rem; }
+      .nav-links { display: none; }
+      .hero, section { padding-left: 1.2rem; padding-right: 1.2rem; }
+      .project-grid { grid-template-columns: 1fr; }
+      .project-card.featured { grid-column: span 1; }
+      .timeline-item { grid-template-columns: 90px 1px 1fr; }
+      .hero-scan { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">ABIL SEBASTIAN / ROBOTICS</div>
+  <ul class="nav-links">
+    <li><a href="#project">Project</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#tasks">Tasks</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+  </ul>
+  <div class="status-badge">● ACTIVE</div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-scan"></div>
+  <p class="hero-eyebrow">Riga Nordic University · Robotics Course · 2026</p>
+  <h1 class="hero-name">ABIL<br><span>SEBASTIAN</span></h1>
+  <p class="hero-course">// Student Project Portfolio &nbsp;·&nbsp; CS Program &nbsp;·&nbsp; Group [YOUR GROUP]</p>
+  <p class="hero-desc">
+    This page documents my progress through the Robotics course — from weekly Wokwi simulation tasks to the final hardware project. Updated every week.
+  </p>
+  <div class="hero-cta">
+    <a href="#project" class="btn btn-primary">View Project →</a>
+    <a href="https://github.com/YOUR_USERNAME" target="_blank" class="btn btn-ghost">GitHub Profile</a>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PROJECT IDEA -->
+<section id="project">
+  <p class="section-label">// 01 — Launch</p>
+  <h2 class="section-title">The Project</h2>
+
+  <div class="project-grid">
+    <div class="project-card featured">
+      <span class="card-tag">Project Idea</span>
+      <h3 class="card-title">Automated Cinema Slider</h3>
+      <p class="card-body">
+        A programmable motorized camera slider controlled by Arduino. The user sets movement speed,
+        direction, and travel duration via physical controls — the system then executes smooth,
+        repeatable camera movements ideal for cinematic video production. Designed as a real,
+        usable filmmaking tool rather than a demonstration prototype.
+      </p>
+      <p class="unique-tag">★ What makes it unique: Bridges embedded systems with professional filmmaking — a programmable creative tool, not just a reactive robot.</p>
+    </div>
+
+    <div class="project-card">
+      <span class="card-tag">Research</span>
+      <h3 class="card-title">Similar Projects</h3>
+      <p class="card-body">
+        Reviewed the <strong>Edelkrone SliderPLUS</strong> (commercial motorized slider, $400+),
+        open-source <strong>Arduino CNC-based sliders</strong> on Instructables, and
+        <strong>DIY DSLR dolly builds</strong> using stepper motors and GT2 belt systems.
+        Our version is optimized for affordability, classroom-buildable components, and
+        direct creative utility.
+      </p>
+    </div>
+
+    <div class="project-card">
+      <span class="card-tag">16 Components</span>
+      <h3 class="card-title">Hardware List</h3>
+      <p class="card-body">
+        · Arduino Uno R3<br/>
+        · NEMA 17 Stepper Motor<br/>
+        · A4988 Stepper Motor Driver<br/>
+        · LCD Display 16×2 (I2C)<br/>
+        · Potentiometer (speed control)<br/>
+        · Push Button × 3 (Start / Stop / Reverse)<br/>
+        · Limit Switch × 2 (end-stop safety)<br/>
+        · LED Green (ready indicator)<br/>
+        · LED Red (error / end-stop alert)<br/>
+        · Buzzer (end-of-travel alert)<br/>
+        · 12V Power Supply<br/>
+        · Capacitor 100µF<br/>
+        · Resistors 220Ω × 3<br/>
+        · GT2 Belt + Pulley<br/>
+        · Linear Rail / Rod<br/>
+        · Breadboard + Jumper Wires
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TEAM -->
+<section id="team">
+  <p class="section-label">// 02 — Team</p>
+  <h2 class="section-title">The Team</h2>
+
+  <div class="team-grid">
+    <div class="team-card">
+      <p class="team-role">Project Lead · Developer</p>
+      <p class="team-name">Abil Sebastian</p>
+      <p class="team-detail">Hardware programming, documentation, project page</p>
+    </div>
+
+    <div class="team-card">
+      <p class="team-role">[Role]</p>
+      <p class="team-name">[Teammate 2 Name]</p>
+      <p class="team-detail">[What they're responsible for]</p>
+    </div>
+
+    <div class="team-card">
+      <p class="team-role">[Role]</p>
+      <p class="team-name">[Teammate 3 Name]</p>
+      <p class="team-detail">[What they're responsible for]</p>
+    </div>
+
+    <!-- Add more cards as needed (up to 5 members) -->
+    <div class="team-card" style="border-style:dashed; opacity:0.4;">
+      <p class="team-role">Open Slot</p>
+      <p class="team-name">+ Add Member</p>
+      <p class="team-detail">Up to 5 students per team</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WOKWI TASKS -->
+<section id="tasks">
+  <p class="section-label">// 03 — Wokwi Simulations</p>
+  <h2 class="section-title">Task Progress</h2>
+  <p style="color:var(--muted); font-size:0.88rem; margin-bottom:2rem; font-family:var(--mono);">
+    Each task must include 15–17 components. Link each box to your Wokwi project when done.
+  </p>
+
+  <div class="tasks-grid">
+    <!-- Mark class as "done" when complete, keep "empty" while pending -->
+    <div class="task-box empty">
+      <span class="task-number">01</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+    <div class="task-box empty">
+      <span class="task-number">02</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+    <div class="task-box empty">
+      <span class="task-number">03</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+    <div class="task-box empty">
+      <span class="task-number">04</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+    <div class="task-box empty">
+      <span class="task-number">05</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+    <div class="task-box empty">
+      <span class="task-number">06</span>
+      <p class="task-label">[ pending ]</p>
+    </div>
+  </div>
+
+  <p style="color:var(--muted); font-size:0.78rem; margin-top:1.5rem; font-family:var(--mono);">
+    ↳ Once complete: replace class "empty" with "done" and wrap task number in &lt;a href="YOUR_WOKWI_LINK"&gt;
+  </p>
+</section>
+
+<div class="divider"></div>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <p class="section-label">// 04 — Timeline</p>
+  <h2 class="section-title">Course Deadlines</h2>
+
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="t-date">06 Mar 2026</div>
+      <div class="t-line"><div class="t-dot overdue"></div><div class="t-connector"></div></div>
+      <div class="t-content">
+        <p class="t-title">01 — INTRO</p>
+        <p class="t-body">GitHub Pages intro page published. Project idea defined. Team formed with roles assigned.</p>
+        <span class="t-status status-overdue">Overdue — Submit Now</span>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="t-date">20 Mar 2026</div>
+      <div class="t-line"><div class="t-dot overdue"></div><div class="t-connector"></div></div>
+      <div class="t-content">
+        <p class="t-title">02 — BASICS</p>
+        <p class="t-body">5 Wokwi simulation tasks completed and published on this project page.</p>
+        <span class="t-status status-overdue">Overdue — In Progress</span>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="t-date">27 Mar 2026</div>
+      <div class="t-line"><div class="t-dot overdue"></div><div class="t-connector"></div></div>
+      <div class="t-content">
+        <p class="t-title">02b — Team Presentation</p>
+        <p class="t-body">Team presentation with AI, animation, video, and infographics. All members must participate.</p>
+        <span class="t-status status-overdue">Overdue</span>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="t-date">03 Apr 2026</div>
+      <div class="t-line"><div class="t-dot active"></div><div class="t-connector"></div></div>
+      <div class="t-content">
+        <p class="t-title">03 — ADVANCED</p>
+        <p class="t-body">6 Wokwi tasks (each with 15–17 components) complete. Project page updated. Component list brought to class for hardware check.</p>
+        <span class="t-status status-active">Due Now</span>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="t-date">17 Apr 2026</div>
+      <div class="t-line"><div class="t-dot"></div><div class="t-connector"></div></div>
+      <div class="t-content">
+        <p class="t-title">04 — MORE</p>
+        <p class="t-body">Final module complete. Full project page with component list and all team details.</p>
+        <span class="t-status status-upcoming">Upcoming</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-id">
+    <span>ABIL SEBASTIAN</span> · Riga Nordic University · Robotics 2026<br/>
+    Student ID: <span>[YOUR STUDENT ID]</span>
+  </div>
+  <div class="footer-id" style="text-align:right;">
+    Last updated: <span>April 2026</span><br/>
+    <a href="/cdn-cgi/l/email-protection#6d363422383f4d28202c242130" style="color:var(--accent); text-decoration:none;">[YOUR EMAIL]</a>
+ 
